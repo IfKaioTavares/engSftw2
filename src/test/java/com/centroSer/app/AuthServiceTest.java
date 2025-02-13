@@ -27,8 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.hamcrest.Matchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -88,16 +86,27 @@ public class AuthServiceTest {
     void shouldLoginSuccessfully() {
         LoginRequestDto loginRequestDto = new LoginRequestDto("test@example.com", "password");
         HttpServletRequest request = mock(HttpServletRequest.class);
+
         when(userRepository.findByEmailAndDeletedFalse(loginRequestDto.email())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(eq(loginRequestDto.password()), eq(user.getPassword()))).thenReturn(true);
-        when(jwtContract.generateToken((com.centroSer.app.infra.security.contracts.UserAuthContract) any(UserAuthenticated.class))).thenReturn("jwtToken");
+
+        UserAuthenticated userAuthenticated = new UserAuthenticated(user);
+
+        ArgumentCaptor<UserAuthenticated> userAuthCaptor = ArgumentCaptor.forClass(UserAuthenticated.class);
+        when(jwtContract.generateToken(userAuthCaptor.capture())).thenReturn("jwtToken");
+
         when(jwtContract.getIssuedAt(anyString())).thenReturn(ZonedDateTime.now());
         when(jwtContract.getExpirationDate(anyString())).thenReturn(ZonedDateTime.now().plusHours(1));
 
         LoginResponseDto response = authService.login(loginRequestDto, request);
+
         assertNotNull(response);
         assertEquals("jwtToken", response.token());
+
+        assertNotNull(userAuthCaptor.getValue());
+        assertTrue(userAuthCaptor.getValue() instanceof UserAuthenticated);
     }
+
 
     @Test
     void shouldThrowExceptionForInvalidLogin() {
