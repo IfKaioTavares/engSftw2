@@ -23,7 +23,7 @@ public record UserResponseDto(
                     user.getUsername(),
                     user.getEmail(),
                     user.isActive(),
-                    user.getRole().ordinal(),
+                    user.getRole().getId(),
                     user.getLastAccess(),
                     user.getDateCreate()
             );

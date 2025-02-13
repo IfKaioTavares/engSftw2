@@ -36,7 +36,7 @@ public class JwtService implements JwtContract {
     @Override
     public String generateToken(UserAuthContract userAuth) {
         Instant now = Instant.now();
-        Instant expiration = now.plusSeconds(120);
+        Instant expiration = now.plusSeconds(3600);
         String scopes = userAuth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
